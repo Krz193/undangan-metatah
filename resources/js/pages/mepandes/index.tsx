@@ -5,10 +5,10 @@ import MandalaBawah from '@/components/mandala-bawah';
 import { ArrowUp } from 'lucide-react';
 import { motion, MotionValue, useScroll, useSpring, useTransform } from 'motion/react';
 
-function SmoothValue(value: MotionValue<number>): MotionValue<number> {
+function SmoothValue(value: MotionValue, damping = 50, stiffness = 400): MotionValue {
     return useSpring(value, {
-        damping: 50,
-        stiffness: 400,
+        damping: damping,
+        stiffness: stiffness,
     });
 }
 
@@ -18,9 +18,16 @@ function Index() {
     const containerRef = useRef<HTMLDivElement>(null);
     const topSectionRef = useRef<HTMLDivElement>(null);
     const [isButtonVisible, setIsButtonVisible] = useState(false);
+    const [yTravel, setYTravel] = useState(400);
     const handleScroll = () => {
         topSectionRef.current?.scrollIntoView({behavior: 'smooth'})
     }
+
+    useEffect(() => {
+        if (topSectionRef.current) {
+            setYTravel(topSectionRef.current.offsetHeight);
+        }
+    }, []);
 
     const { scrollYProgress } = useScroll({
         container: containerRef,
@@ -30,6 +37,10 @@ function Index() {
 
     const scale = useTransform(scrollYProgress, [0, 1], [1.85, .75]);
     const smoothScale = SmoothValue(scale);
+
+    const y = useTransform(scrollYProgress, [0, 1], [yTravel/2, -yTravel/2]);
+    // const y = useTransform(scrollYProgress, [0, 1], ["50svh", "-50svh"]);
+    // const smoothY = SmoothValue(y);
 
     const staggerVariants = {
         // Varian untuk parent/container
@@ -145,7 +156,7 @@ function Index() {
             </motion.div>
 
             {/* mandala */}
-            <div
+            {/* <div
                 className='
                     absolute bottom-0 inset-x-0 flex justify-center
                     lg:left-0 lg:bottom-1/2 lg:translate-y-1/2 lg:translate-x-[-50%] lg:w-1/4 lg:items-center'>
@@ -163,6 +174,28 @@ function Index() {
                 >
                     <Mandala
                         className='w-full'/>
+                </motion.div>
+            </div> */}
+            <div
+                className='
+                    fixed top-1/2 left-1/2 pointer-events-none
+                    lg:left-0 lg:top-1/2 lg:translate-x-[-50%]'
+            >
+                <motion.div 
+                    className='-translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:translate-y-0' // Centering elemen
+                    style={{ 
+                        scale: smoothScale,
+                        y
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ 
+                        duration: 30,
+                        ease: "linear",
+                        repeat: Infinity
+                    }}
+                >
+                    <Mandala
+                        className='w-[70vw] lg:w-full'/>
                 </motion.div>
             </div>
 
